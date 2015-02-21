@@ -131,6 +131,7 @@
         android:id="@+id/savebut"
         android:layout_below="@+id/soundspin"
         android:layout_marginTop="25dp"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:onClick="SaveClicked" />
 
 </RelativeLayout>

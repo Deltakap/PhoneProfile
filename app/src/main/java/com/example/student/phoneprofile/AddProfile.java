@@ -1,5 +1,6 @@
 package com.example.student.phoneprofile;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,11 +10,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 
 public class AddProfile extends ActionBarActivity implements AdapterView.OnItemSelectedListener {
 
-    private int wifi=-2;
+    private int wifi;
     private int data;
     private int bt;
     private int gps;
@@ -79,19 +81,67 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if(id == R.id.wifispin){
-            if(position == 0)
+        int selid = parent.getId();
+        if(selid == R.id.wifispin){
+            if(id == 0)
                 wifi = -1;
-            if(position == 1)
+            if(id == 1)
                 wifi = 1;
-            if(position == 2)
+            if(id == 2)
                 wifi = 0;
         }
-        Log.d("user",""+wifi);
+        if(selid == R.id.dataspin){
+            if(id == 0)
+                data = -1;
+            if(id == 1)
+                data = 1;
+            if(id == 2)
+                data = 0;
+        }
+        if(selid == R.id.bluetoothspin){
+            if(id == 0)
+                bt = -1;
+            if(id == 1)
+                bt = 1;
+            if(id == 2)
+                bt = 0;
+        }
+        if(selid == R.id.gpsspin){
+            if(id == 0)
+                gps = -1;
+            if(id == 1)
+                gps = 1;
+            if(id == 2)
+                gps = 0;
+        }
+        if(selid == R.id.soundspin){
+            if(id == 0)
+                sound = 1;
+            if(id == 1)
+                sound = 2;
+            if(id == 2)
+                sound = 3;
+        }
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+
+    public void SaveClicked(View v){
+        TextView tv = (TextView)findViewById(R.id.pname);
+        String pname = tv.getText().toString();
+
+        Intent i = new Intent();
+        i.putExtra("pname",pname);
+        i.putExtra("wifi",wifi);
+        i.putExtra("data",data);
+        i.putExtra("bt",bt);
+        i.putExtra("gps",gps);
+        i.putExtra("sound",sound);
+
+        this.setResult(RESULT_OK,i);
+        this.finish();
     }
 }
