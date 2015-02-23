@@ -11,6 +11,7 @@
         <item>Disable</item>
     </string-array>
     <string-array name="soundarray">
+        <item>No Change</item>
         <item>Sound</item>
         <item>Vibrate</item>
         <item>Silent</item>

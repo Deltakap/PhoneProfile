@@ -21,9 +21,10 @@ public class ProfileDB extends SQLiteOpenHelper{
                 "wifi integer not null,"+
                 "data integer not null,"+
                 "bluetooth integer not null,"+
-                "gps integer not null,"+
                 "sound integer not null,"+
-                "brightness integer);";
+                "ringVol integer not null,"+
+                "mediaVol integer not null,"+
+                "brightness integer not null);";
         db.execSQL(sql);
     }
 

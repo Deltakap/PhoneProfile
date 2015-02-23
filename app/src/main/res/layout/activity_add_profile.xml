@@ -1,3 +1,7 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -5,7 +9,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.example.student.phoneprofile.AddProfile"
-    android:id="@+id/d">
+    android:id="@+id/Layout">
 
     <TextView
         android:layout_width="wrap_content"
@@ -32,9 +36,9 @@
         android:text="Wi-Fi"
         android:id="@+id/textview2"
         android:textColor="#232323"
-        android:layout_below="@+id/pname"
         android:layout_marginTop="20dp"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/toTime" />
 
     <Spinner
         android:layout_width="wrap_content"
@@ -48,7 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Mobile Data"
+        android:text="Mobile Data (For Jelly Bean or lower)"
         android:id="@+id/text3"
         android:textColor="#232323"
         android:layout_below="@+id/wifispin"
@@ -88,32 +92,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="GPS"
-        android:id="@+id/text5"
-        android:textColor="#232323"
-        android:layout_below="@+id/bluetoothspin"
-        android:layout_marginTop="15dp"
-        android:layout_alignParentStart="true" />
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/gpsspin"
-        android:spinnerMode="dropdown"
-        android:layout_below="@+id/text5"
-        android:layout_alignParentStart="true"
-        android:layout_alignEnd="@+id/wifispin" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Ringer Mode"
         android:id="@+id/text6"
         android:textColor="#232323"
-        android:layout_below="@+id/gpsspin"
         android:layout_marginTop="15dp"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/bluetoothspin" />
 
     <Spinner
         android:layout_width="wrap_content"
@@ -124,14 +108,171 @@
         android:layout_alignParentStart="true"
         android:layout_alignEnd="@+id/wifispin" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Volume"
+        android:id="@+id/text7"
+        android:textColor="#232323"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/soundspin"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Ring Volume"
+        android:id="@+id/text8"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_below="@+id/ovrVol"
+        android:layout_alignParentStart="true"
+        android:textColor="#454545" />
+
+    <SeekBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ringVol"
+        android:layout_below="@+id/text8"
+        android:layout_alignStart="@+id/text8"
+        android:layout_alignParentEnd="true"
+        android:max="7"
+        android:progress="0"
+        android:indeterminate="false"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Media Volume"
+        android:id="@+id/textView2"
+        android:layout_marginLeft="10dp"
+        android:textColor="#454545"
+        android:layout_below="@+id/ringVol"
+        android:layout_alignParentStart="true" />
+
+    <SeekBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/mediaVol"
+        android:layout_below="@+id/textView2"
+        android:layout_alignStart="@+id/textView2"
+        android:layout_alignParentEnd="true"
+        android:max="15"
+        android:progress="0"
+        android:indeterminate="false" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Brightness"
+        android:id="@+id/textView3"
+        android:textColor="#232323"
+        android:layout_marginTop="15dp"
+        android:layout_alignStart="@+id/text7"
+        android:layout_below="@+id/mediaVol" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Automatic Brightness"
+        android:id="@+id/autobright"
+        android:layout_below="@+id/ovrBri"
+        android:checked="false"
+        android:onClick="onBrightClicked" />
+
+    <SeekBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/brightBar"
+        android:layout_below="@+id/autobright"
+        android:layout_alignStart="@+id/mediaVol"
+        android:layout_alignParentEnd="true"
+        android:max="255"
+        android:progress="0"
+        android:indeterminate="false" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Save"
-        android:id="@+id/savebut"
-        android:layout_below="@+id/soundspin"
-        android:layout_marginTop="25dp"
+        android:id="@+id/button"
+        android:layout_below="@+id/brightBar"
         android:layout_centerHorizontal="true"
         android:onClick="SaveClicked" />
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ovrVol"
+        android:checked="false"
+        android:layout_below="@+id/text7"
+        android:layout_alignParentStart="true"
+        android:text="Overide Volume"
+        android:onClick="onOvrVolClicked" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ovrBri"
+        android:checked="false"
+        android:text="Overide Brightness"
+        android:onClick="onBrightClicked"
+        android:layout_below="@+id/textView3" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/timeBox"
+        android:checked="false"
+        android:text="Time Detect"
+        android:onClick="onTimeClicked"
+        android:layout_below="@+id/pname"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="15dp"
+        android:textSize="18dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="From"
+        android:id="@+id/textView4"
+        android:layout_below="@+id/timeBox"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:textSize="14dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="time"
+        android:ems="10"
+        android:id="@+id/fromTime"
+        android:layout_below="@+id/textView4"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="To"
+        android:id="@+id/textView5"
+        android:textSize="14dp"
+        android:layout_below="@+id/fromTime"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="time"
+        android:ems="10"
+        android:id="@+id/toTime"
+        android:layout_below="@+id/textView5"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>
+</ScrollView>

@@ -1,5 +1,6 @@
 package com.example.student.phoneprofile;
 
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -9,17 +10,29 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
+
+import java.util.Calendar;
 
 
-public class AddProfile extends ActionBarActivity implements AdapterView.OnItemSelectedListener {
+public class AddProfile extends ActionBarActivity implements AdapterView.OnItemSelectedListener, SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 
     private int wifi;
-    private int data;
+    private int data=-1;
     private int bt;
-    private int gps;
     private int sound;
+    private int ringVol;
+    private int mediaVol;
+    private int brightness;
+    private boolean ovrChk;
+    private boolean briChk;
+    private boolean autobright;
+    private boolean timeDetect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,23 +52,87 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
         Spinner wifisp = (Spinner)findViewById(R.id.wifispin);
         Spinner datasp = (Spinner)findViewById(R.id.dataspin);
         Spinner btsp = (Spinner)findViewById(R.id.bluetoothspin);
-        Spinner gpssp = (Spinner)findViewById((R.id.gpsspin));
         Spinner soundsp = (Spinner)findViewById(R.id.soundspin);
 
         wifisp.setAdapter(adapter);
         datasp.setAdapter(adapter);
         btsp.setAdapter(adapter);
-        gpssp.setAdapter(adapter);
         soundsp.setAdapter(adapter2);
 
         wifisp.setOnItemSelectedListener(this);
         datasp.setOnItemSelectedListener(this);
         btsp.setOnItemSelectedListener(this);
-        gpssp.setOnItemSelectedListener(this);
         soundsp.setOnItemSelectedListener(this);
 
-    }
+        SeekBar sb1 = (SeekBar)findViewById(R.id.ringVol);
+        SeekBar sb2 = (SeekBar)findViewById(R.id.mediaVol);
+        SeekBar sb3 = (SeekBar)findViewById(R.id.brightBar);
+        CheckBox cb1 = (CheckBox)findViewById(R.id.autobright);
+        EditText fromTime = (EditText)findViewById(R.id.fromTime);
+        EditText toTime = (EditText)findViewById(R.id.toTime);
 
+        fromTime.setEnabled(false);
+        toTime.setEnabled(false);
+        fromTime.setOnClickListener(this);
+        toTime.setOnClickListener(this);
+
+        sb1.setOnSeekBarChangeListener(this);
+        sb2.setOnSeekBarChangeListener(this);
+        sb3.setOnSeekBarChangeListener(this);
+
+        sb1.setEnabled(false);
+        sb2.setEnabled(false);
+        sb3.setEnabled(false);
+        cb1.setEnabled(false);
+
+        Intent i = this.getIntent();
+        if(i.hasExtra("wifi")){
+            setTitle("Edit Profile");
+
+            String pname = i.getStringExtra("pname");
+            int wifi = i.getIntExtra("wifi", -2);
+            int data = i.getIntExtra("data", -2);
+            int bt = i.getIntExtra("bt", -2);
+            int sound = i.getIntExtra("sound", 0);
+            int ringVol = i.getIntExtra("ringVol",-1);
+            int mediaVol = i.getIntExtra("mediaVol",-1);
+            int brightness = i.getIntExtra("brightness",-2);
+
+            EditText et = (EditText)findViewById(R.id.pname);
+            Log.d("user",""+brightness);
+            et.setText(pname);
+            wifisp.setSelection(wifi);
+            datasp.setSelection(data);
+            btsp.setSelection(bt);
+            soundsp.setSelection(sound);
+            if(mediaVol != -1){
+                CheckBox ovrVol = (CheckBox)findViewById(R.id.ovrVol);
+                ovrVol.setChecked(true);
+                ovrChk = true;
+                sb2.setEnabled(true);
+                sb2.setProgress(mediaVol);
+                if(ringVol != -1){
+                    sb1.setEnabled(true);
+                    sb1.setProgress(ringVol);
+                }
+            }
+            if(brightness != -2){
+                CheckBox ovrBri = (CheckBox)findViewById(R.id.ovrBri);
+                ovrBri.setChecked(true);
+                briChk = true;
+                cb1.setEnabled(true);
+                if(brightness == -1){
+                    cb1.setChecked(true);
+                    autobright = true;
+                    sb3.setEnabled(false);
+                }
+                else{
+                    sb3.setEnabled(true);
+                    sb3.setProgress(brightness);
+                }
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -83,44 +160,17 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         int selid = parent.getId();
         if(selid == R.id.wifispin){
-            if(id == 0)
-                wifi = -1;
-            if(id == 1)
-                wifi = 1;
-            if(id == 2)
-                wifi = 0;
+            wifi = (int) id;
         }
         if(selid == R.id.dataspin){
-            if(id == 0)
-                data = -1;
-            if(id == 1)
-                data = 1;
-            if(id == 2)
-                data = 0;
+            data = (int)id;
         }
         if(selid == R.id.bluetoothspin){
-            if(id == 0)
-                bt = -1;
-            if(id == 1)
-                bt = 1;
-            if(id == 2)
-                bt = 0;
-        }
-        if(selid == R.id.gpsspin){
-            if(id == 0)
-                gps = -1;
-            if(id == 1)
-                gps = 1;
-            if(id == 2)
-                gps = 0;
+            bt = (int)id;
         }
         if(selid == R.id.soundspin){
-            if(id == 0)
-                sound = 1;
-            if(id == 1)
-                sound = 2;
-            if(id == 2)
-                sound = 3;
+           sound = (int)id;
+           onOvrVolClicked(findViewById(R.id.ovrVol));
         }
     }
 
@@ -138,10 +188,121 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
         i.putExtra("wifi",wifi);
         i.putExtra("data",data);
         i.putExtra("bt",bt);
-        i.putExtra("gps",gps);
         i.putExtra("sound",sound);
-
+        if(briChk){
+            if(autobright)
+                i.putExtra("brightness",-1);
+            else
+                i.putExtra("brightness",brightness);
+        }
+        if(ovrChk){
+            if(sound == 0 || sound == 1) {
+                i.putExtra("ringVol", ringVol);
+            }
+            i.putExtra("mediaVol",mediaVol);
+        }
         this.setResult(RESULT_OK,i);
         this.finish();
+    }
+
+    public void onOvrVolClicked(View v){
+        ovrChk = ((CheckBox)v).isChecked();
+        SeekBar sb1 = (SeekBar)findViewById(R.id.mediaVol);
+        SeekBar sb2 = (SeekBar)findViewById(R.id.ringVol);
+        if(ovrChk){
+            sb1.setEnabled(true);
+            if(sound==0 || sound==1){
+                sb2.setEnabled(true);
+            }
+            else{
+                sb2.setEnabled(false);
+            }
+        }
+        else{
+            sb1.setEnabled(false);
+            sb2.setEnabled(false);
+        }
+    }
+
+    public void onBrightClicked(View v){
+        int id = v.getId();
+        SeekBar sb1 = (SeekBar)findViewById(R.id.brightBar);
+        CheckBox cb1 = (CheckBox)findViewById(R.id.autobright);
+        if(id == R.id.autobright) {
+            autobright = ((CheckBox)v).isChecked();
+            if (!autobright) {
+                sb1.setEnabled(true);
+            } else {
+                sb1.setEnabled(false);
+            }
+        }
+        if(id == R.id.ovrBri){
+            briChk = ((CheckBox) v).isChecked();
+            if(briChk){
+                cb1.setEnabled(true);
+                if(!autobright)
+                    sb1.setEnabled(true);
+            }
+            else{
+                sb1.setEnabled(false);
+                cb1.setEnabled(false);
+            }
+        }
+    }
+
+    public void onTimeClicked(View v){
+        EditText fromTime = (EditText)findViewById(R.id.fromTime);
+        EditText toTime = (EditText)findViewById(R.id.toTime);
+        timeDetect = ((CheckBox)v).isChecked();
+        if(timeDetect){
+            fromTime.setEnabled(true);
+            toTime.setEnabled(true);
+        }
+        else{
+            fromTime.setEnabled(false);
+            toTime.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if(seekBar == (SeekBar)findViewById(R.id.ringVol)){
+            ringVol = progress;
+        }
+        if(seekBar == (SeekBar)findViewById(R.id.mediaVol)){
+            mediaVol = progress;
+        }
+        if(seekBar == (SeekBar)findViewById(R.id.brightBar)){
+            brightness = progress;
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        final EditText editText = (EditText)findViewById(v.getId());
+        Calendar mcurrentTime = Calendar.getInstance();
+        int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = mcurrentTime.get(Calendar.MINUTE);
+        TimePickerDialog timePickerDialog = new TimePickerDialog(AddProfile.this,
+                new TimePickerDialog.OnTimeSetListener(){
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        editText.setText(String.format("%02d",hourOfDay)+":"
+                                +String.format("%02d",minute));
+                    }
+                },hour,minute,true);
+
+        timePickerDialog.setTitle("Set Time");
+        timePickerDialog.show();
     }
 }

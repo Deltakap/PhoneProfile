@@ -1,16 +1,23 @@
 package com.example.student.phoneprofile;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.AudioManager;
+import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,8 +25,12 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
+
+public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, ActionMode.Callback {
 
     ProfileDB helper;
     SimpleCursorAdapter adapter;
@@ -37,7 +48,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private void showList(){
         helper = new ProfileDB(this.getApplicationContext());
         SQLiteDatabase db = helper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT _id,pname FROM profile ORDER BY _id",null);
+        Cursor cursor = db.rawQuery("SELECT _id,pname FROM profile ORDER BY _id;",null);
 
         adapter= new SimpleCursorAdapter(this,android.R.layout.simple_list_item_1,cursor,
                 new String[] {"pname"}, new int[] {android.R.id.text1});
@@ -45,6 +56,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         ListView lv = (ListView)findViewById(R.id.profilelist);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(this);
+        lv.setOnItemLongClickListener(this);
         db.close();
     }
 
@@ -75,6 +87,82 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         return super.onOptionsItemSelected(item);
     }
 
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.menu_actionmode, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_delete:
+                deleteClicked();
+                mode.finish();
+                break;
+            case R.id.menu_edit:
+                editClicked();
+                mode.finish();
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+    private void editClicked(){
+        SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM profile WHERE _id="+Long.toString(selectedId)+";"
+                ,null);
+        if(c.getCount() == 1){
+            c.moveToFirst();
+            String pname = c.getString(1);
+            int wifi = c.getInt(2);
+            int sound = c.getInt(5);
+            int bt = c.getInt(4);
+            int data = c.getInt(3);
+            int ringVol = c.getInt(6);
+            int mediaVol = c.getInt(7);
+            int brightness = c.getInt(8);
+
+            Intent i = new Intent(this,AddProfile.class);
+            i.putExtra("pname",pname);
+            i.putExtra("wifi",wifi);
+            i.putExtra("data",data);
+            i.putExtra("bt",bt);
+            i.putExtra("sound",sound);
+            i.putExtra("brightness",brightness);
+            i.putExtra("ringVol", ringVol);
+            i.putExtra("mediaVol",mediaVol);
+
+            startActivityForResult(i,12);
+        }
+    }
+
+    private void deleteClicked(){
+        SQLiteDatabase db = helper.getWritableDatabase();
+        int rowCount = db.delete("profile", "_id = ?",
+                new String[]{Long.toString(selectedId)});
+        if (rowCount == 1) {
+            Toast t = Toast.makeText(this.getApplicationContext(),
+                    "Profile Deleted", Toast.LENGTH_SHORT);
+            t.show();
+        }
+        Cursor cursor = db.rawQuery("SELECT _id,pname FROM profile ORDER BY _id;",null);
+        adapter.changeCursor(cursor);
+        db.close();
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+        actionMode = null;
+    }
+
     public void buttonClicked(View v){
         int id = v.getId();
         Intent i;
@@ -91,14 +179,16 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent i) {
-        if(requestCode == 10){
+        if(requestCode == 10 || requestCode == 12){
             if(resultCode == RESULT_OK) {
                 String pname = i.getStringExtra("pname");
                 int wifi = i.getIntExtra("wifi", -2);
                 int data = i.getIntExtra("data", -2);
                 int bt = i.getIntExtra("bt", -2);
-                int gps = i.getIntExtra("gps", -2);
                 int sound = i.getIntExtra("sound", 0);
+                int ringVol = i.getIntExtra("ringVol",-1);
+                int mediaVol = i.getIntExtra("mediaVol",-1);
+                int brightness = i.getIntExtra("brightness",-2);
 
                 SQLiteDatabase db = helper.getWritableDatabase();
                 ContentValues c = new ContentValues();
@@ -106,16 +196,34 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 c.put("wifi", wifi);
                 c.put("data", data);
                 c.put("bluetooth", bt);
-                c.put("gps", gps);
                 c.put("sound", sound);
+                c.put("mediaVol",mediaVol);
+                c.put("ringVol",ringVol);
+                c.put("brightness",brightness);
 
-                long testID = db.insert("profile", null, c);
-                db.close();
+                if(requestCode == 10) {
+                    long testID = db.insert("profile", null, c);
+                    db.close();
 
-                if(testID != -1){
-                    Toast t = Toast.makeText(this.getApplicationContext(),pname+" profile is added",
-                            Toast.LENGTH_SHORT);
-                    t.show();
+                    if (testID != -1) {
+                        Toast t = Toast.makeText(this.getApplicationContext(), pname +
+                                " profile is added",
+                                Toast.LENGTH_SHORT);
+                        t.show();
+                    }
+                }
+
+                if(requestCode == 12) {
+                    long testID = db.update("profile",c,"_id=?",
+                            new String[]{Long.toString(selectedId)});
+                    db.close();
+
+                    if (testID != -1) {
+                        Toast t = Toast.makeText(this.getApplicationContext(), pname +
+                                        " profile is updated",
+                                Toast.LENGTH_SHORT);
+                        t.show();
+                    }
                 }
             }
         }
@@ -123,13 +231,156 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
     private void toggleWifi(int status){
         WifiManager wifiManager = (WifiManager)this.getSystemService(Context.WIFI_SERVICE);
-        if(status == 1 && !wifiManager.isWifiEnabled()){
+        if(status == 1){
             wifiManager.setWifiEnabled(true);
         }
+        else if(status == 2){
+            wifiManager.setWifiEnabled(false);
+        }
+    }
+
+    private void setRing(int status){
+        AudioManager audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+        switch(status){
+            case 1: audioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                    break;
+            case 2: audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                    break;
+            case 3: audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+                    break;
+            default:break;
+        }
+    }
+
+    private void toggleBT(int status){
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(status == 1)
+            bluetoothAdapter.enable();
+        else
+            bluetoothAdapter.disable();
+    }
+
+    private void setRingVol(int status){
+        AudioManager audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+        int mode = audioManager.getRingerMode();
+        if(mode == audioManager.RINGER_MODE_NORMAL) {
+            audioManager.setStreamVolume(audioManager.STREAM_RING, status, 0);
+            audioManager.setStreamVolume(audioManager.STREAM_NOTIFICATION, status, 0);
+        }
+    }
+
+    private void setMediaVol(int status){
+        AudioManager audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setStreamVolume(audioManager.STREAM_MUSIC,status, 0);
+    }
+
+    private void setBrightness(int status){
+        if(status != -1){
+            Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE,
+                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+            Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,status);
+        }
+        else
+            Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE,
+                    Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
+    }
+
+    private void toggleData(int status){
+        if(status == 1) {
+            try {
+                setMobileDataEnabled(this.getApplicationContext(), true);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            try {
+                setMobileDataEnabled(this.getApplicationContext(), false);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void setMobileDataEnabled(Context context, boolean enabled) throws
+            ClassNotFoundException, NoSuchFieldException, IllegalAccessException,
+            NoSuchMethodException, InvocationTargetException {
+
+        final ConnectivityManager conman = (ConnectivityManager) context.getSystemService
+                (Context.CONNECTIVITY_SERVICE);
+        final Class conmanClass = Class.forName(conman.getClass().getName());
+        final Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
+        iConnectivityManagerField.setAccessible(true);
+        final Object iConnectivityManager = iConnectivityManagerField.get(conman);
+        final Class iConnectivityManagerClass = Class.forName(iConnectivityManager.getClass()
+                .getName());
+        final Method setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod
+                ("setMobileDataEnabled", Boolean.TYPE);
+        setMobileDataEnabledMethod.setAccessible(true);
+
+        setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        view.setSelected(true);
+        selectedId = id;
+        //Log.d("user","SELECT * FROM profile WHERE _id="+Long.toString(selectedId));
 
+        SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM profile WHERE _id="+Long.toString(selectedId)+";"
+                  ,null);
+
+        c.moveToFirst();
+        String pname = c.getString(1);
+        int wifi = c.getInt(2);
+        int sound = c.getInt(5);
+        int bt = c.getInt(4);
+        int data = c.getInt(3);
+        int ringVol = c.getInt(6);
+        int mediaVol = c.getInt(7);
+        int brightness = c.getInt(8);
+
+        if(wifi != 0)
+            toggleWifi(wifi);
+        if(sound != 0)
+            setRing(sound);
+        if(bt != 0)
+            toggleBT(bt);
+        if(ringVol != -1)
+            setRingVol(ringVol);
+        if(mediaVol != -1)
+            setMediaVol(mediaVol);
+        if(brightness != -2)
+            setBrightness(brightness);
+        if(data != 0)
+            toggleData(data);
+
+        Toast.makeText(this.getApplicationContext(),pname+" profile is applied",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        view.setSelected(true);
+        selectedId = id;
+        actionMode = this.startActionMode(this);
+        return true;
     }
 }
