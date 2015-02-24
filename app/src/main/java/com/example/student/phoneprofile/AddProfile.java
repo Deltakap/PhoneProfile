@@ -148,7 +148,7 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
                     sb3.setProgress(brightness);
                 }
             }
-            if(!fromTime.equals("")){
+            if(fromTime != null){
                 CheckBox timeChk = (CheckBox)findViewById(R.id.timeBox);
                 timeChk.setChecked(true);
                 timeDetect = true;
