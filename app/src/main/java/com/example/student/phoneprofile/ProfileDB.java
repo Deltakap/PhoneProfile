@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class ProfileDB extends SQLiteOpenHelper{
 
     private static final String name = "profile.sqlite3";
-    private static final int version = 4;
+    private static final int version = 7;
 
     public ProfileDB(Context ctx){
         super(ctx,name,null,version);
@@ -25,8 +25,8 @@ public class ProfileDB extends SQLiteOpenHelper{
                 "ringVol integer not null,"+
                 "mediaVol integer not null,"+
                 "brightness integer not null,"+
-                "fromTime integer not null,"+
-                "toTime integer not null);";
+                "fromTime text,"+
+                "toTime text);";
         db.execSQL(sql);
     }
 

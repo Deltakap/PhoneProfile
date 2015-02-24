@@ -36,8 +36,8 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
     private boolean briChk;
     private boolean autobright;
     private boolean timeDetect;
-    private int fromTime;
-    private int toTime;
+    private String fromTime;
+    private String toTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,11 +110,8 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
             ringVol = i.getIntExtra("ringVol",-1);
             mediaVol = i.getIntExtra("mediaVol",-1);
             brightness = i.getIntExtra("brightness",-2);
-            fromTime = i.getIntExtra("fromTime",-1);
-            toTime = i.getIntExtra("toTime",-1);
-
-            if(toTime >= 2400)
-                toTime -= 2400;
+            fromTime = i.getStringExtra("fromTime");
+            toTime = i.getStringExtra("toTime");
 
             EditText et = (EditText)findViewById(R.id.pname);
             et.setText(pname);
@@ -151,22 +148,15 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
                     sb3.setProgress(brightness);
                 }
             }
-            if(fromTime != -1){
+            if(!fromTime.equals("")){
                 CheckBox timeChk = (CheckBox)findViewById(R.id.timeBox);
                 timeChk.setChecked(true);
                 timeDetect = true;
                 fromTimeT.setEnabled(true);
                 toTimeT.setEnabled(true);
 
-                String fromTimetemp = String.format("%04d",fromTime);
-                String toTimetemp = String.format("%04d",toTime);
-
-                Log.d("user",""+fromTimetemp);
-                Log.d("user",""+toTimetemp);
-
-                fromTimeT.setText(fromTimetemp.substring(0,2)+":"+fromTimetemp.substring(2));
-
-                toTimeT.setText(toTimetemp.substring(0,2)+":"+toTimetemp.substring(2));
+                fromTimeT.setText(fromTime.substring(11));
+                toTimeT.setText(toTime.substring(11));
             }
         }
     }
@@ -247,20 +237,14 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
             EditText eft = (EditText) findViewById(R.id.fromTime);
             EditText ett = (EditText) findViewById(R.id.toTime);
 
-            String ft = eft.getText().toString();
-            String tt = ett.getText().toString();
+            fromTime = eft.getText().toString();
+            toTime = ett.getText().toString();
 
-            String ftt = ft.replace(":", "");
-            String ttt = tt.replace(":", "");
-
-            fromTime = Integer.parseInt(ftt);
-            toTime = Integer.parseInt(ttt);
-
-            if (toTime < fromTime)
-                toTime += 2400;
-
-            i.putExtra("fromTime", fromTime);
-            i.putExtra("toTime", toTime);
+            i.putExtra("fromTime", "2015-02-24 "+fromTime);
+            if(fromTime.compareTo(toTime)>0)
+                i.putExtra("toTime", "2015-02-25 "+toTime);
+            else
+                i.putExtra("toTime", "2015-02-24 "+toTime);
         }
 
         this.setResult(RESULT_OK,i);

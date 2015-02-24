@@ -71,10 +71,14 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         int nowhour = now.get(Calendar.HOUR_OF_DAY);
         int nowminute = now.get(Calendar.MINUTE);
 
-        int nowtime = Integer.parseInt(""+nowhour+nowminute);
+        String nowhs = String.format("%02d",nowhour);
+        String nowms = String.format("%02d",nowminute);
+
+        String nowtime = nowhs+":"+nowms;
 
         SQLiteDatabase db = helper.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT * FROM profile WHERE "+nowtime+" BETWEEN fromTime AND toTime;",null);
+        Cursor c = db.rawQuery("SELECT * FROM profile WHERE datetime('2015-02-24 "+nowtime+"')" +
+                " BETWEEN datetime(fromTime) AND datetime(toTime);",null);
         c.moveToFirst();
 
         if(c.getCount() == 1 && applyId != c.getInt(0)){
@@ -179,8 +183,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             int ringVol = c.getInt(6);
             int mediaVol = c.getInt(7);
             int brightness = c.getInt(8);
-            int fromTime = c.getInt(9);
-            int toTime = c.getInt(10);
+            String fromTime = c.getString(9);
+            String toTime = c.getString(10);
 
             Intent i = new Intent(this,AddProfile.class);
             i.putExtra("pname",pname);
@@ -243,8 +247,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 int ringVol = i.getIntExtra("ringVol",-1);
                 int mediaVol = i.getIntExtra("mediaVol",-1);
                 int brightness = i.getIntExtra("brightness",-2);
-                int fromTime = i.getIntExtra("fromTime",-1);
-                int toTime = i.getIntExtra("toTime",-1);
+                String fromTime = i.getStringExtra("fromTime");
+                String toTime = i.getStringExtra("toTime");
 
                 SQLiteDatabase db = helper.getWritableDatabase();
                 ContentValues c = new ContentValues();
