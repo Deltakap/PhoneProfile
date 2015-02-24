@@ -1,16 +1,19 @@
 package com.example.student.phoneprofile;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -28,14 +31,17 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Calendar;
 
 
-public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, ActionMode.Callback {
+public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener,
+        AdapterView.OnItemLongClickListener, ActionMode.Callback {
 
     ProfileDB helper;
     SimpleCursorAdapter adapter;
     long selectedId;
     ActionMode actionMode;
+    long applyId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +66,53 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         db.close();
     }
 
+    private void applyCheck(){
+        Calendar now = Calendar.getInstance();
+        int nowhour = now.get(Calendar.HOUR_OF_DAY);
+        int nowminute = now.get(Calendar.MINUTE);
+
+        int nowtime = Integer.parseInt(""+nowhour+nowminute);
+
+        SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM profile WHERE "+nowtime+" BETWEEN fromTime AND toTime;",null);
+        c.moveToFirst();
+
+        if(c.getCount() == 1 && applyId != c.getInt(0)){
+
+            String pname = c.getString(1);
+            applyId = c.getInt(0);
+
+            final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+            alertDialog.setTitle("Profile Suggestion");
+            alertDialog.setMessage("Would you like to switch to profile "+pname+"?");
+
+            alertDialog.setButton(DialogInterface.BUTTON_POSITIVE
+                    , "Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (which == DialogInterface.BUTTON_POSITIVE) {
+                        Apply();
+                        alertDialog.dismiss();
+                    }
+                }
+            });
+
+            alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
+                    "No",new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            alertDialog.dismiss();
+                        }
+                    });
+
+            alertDialog.show();
+        }
+    }
+
     protected void onResume(){
         super.onResume();
         showList();
+        applyCheck();
     }
 
     @Override
@@ -129,6 +179,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             int ringVol = c.getInt(6);
             int mediaVol = c.getInt(7);
             int brightness = c.getInt(8);
+            int fromTime = c.getInt(9);
+            int toTime = c.getInt(10);
 
             Intent i = new Intent(this,AddProfile.class);
             i.putExtra("pname",pname);
@@ -139,6 +191,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             i.putExtra("brightness",brightness);
             i.putExtra("ringVol", ringVol);
             i.putExtra("mediaVol",mediaVol);
+            i.putExtra("fromTime",fromTime);
+            i.putExtra("toTime",toTime);
 
             startActivityForResult(i,12);
         }
@@ -189,6 +243,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 int ringVol = i.getIntExtra("ringVol",-1);
                 int mediaVol = i.getIntExtra("mediaVol",-1);
                 int brightness = i.getIntExtra("brightness",-2);
+                int fromTime = i.getIntExtra("fromTime",-1);
+                int toTime = i.getIntExtra("toTime",-1);
 
                 SQLiteDatabase db = helper.getWritableDatabase();
                 ContentValues c = new ContentValues();
@@ -200,6 +256,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 c.put("mediaVol",mediaVol);
                 c.put("ringVol",ringVol);
                 c.put("brightness",brightness);
+                c.put("fromTime",fromTime);
+                c.put("toTime",toTime);
 
                 if(requestCode == 10) {
                     long testID = db.insert("profile", null, c);
@@ -286,66 +344,55 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     private void toggleData(int status){
-        if(status == 1) {
-            try {
-                setMobileDataEnabled(this.getApplicationContext(), true);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
+        ConnectivityManager dataManager;
+        dataManager  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        Method dataMtd = null;
+        try {
+            dataMtd = ConnectivityManager.class.getDeclaredMethod
+                    ("setMobileDataEnabled", boolean.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        if(dataMtd != null) {
+            dataMtd.setAccessible(true);
+            if (status == 1) {
+                try {
+                    dataMtd.invoke(dataManager, true);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    dataMtd.invoke(dataManager, false);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        else {
-            try {
-                setMobileDataEnabled(this.getApplicationContext(), false);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void setMobileDataEnabled(Context context, boolean enabled) throws
-            ClassNotFoundException, NoSuchFieldException, IllegalAccessException,
-            NoSuchMethodException, InvocationTargetException {
-
-        final ConnectivityManager conman = (ConnectivityManager) context.getSystemService
-                (Context.CONNECTIVITY_SERVICE);
-        final Class conmanClass = Class.forName(conman.getClass().getName());
-        final Field iConnectivityManagerField = conmanClass.getDeclaredField("mService");
-        iConnectivityManagerField.setAccessible(true);
-        final Object iConnectivityManager = iConnectivityManagerField.get(conman);
-        final Class iConnectivityManagerClass = Class.forName(iConnectivityManager.getClass()
-                .getName());
-        final Method setMobileDataEnabledMethod = iConnectivityManagerClass.getDeclaredMethod
-                ("setMobileDataEnabled", Boolean.TYPE);
-        setMobileDataEnabledMethod.setAccessible(true);
-
-        setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         view.setSelected(true);
-        selectedId = id;
+        applyId = id;
         //Log.d("user","SELECT * FROM profile WHERE _id="+Long.toString(selectedId));
 
+        Apply();
+    }
+
+    public void Apply()
+    {
         SQLiteDatabase db = helper.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT * FROM profile WHERE _id="+Long.toString(selectedId)+";"
-                  ,null);
+        Cursor c = db.rawQuery("SELECT * FROM profile WHERE _id="+Long.toString(applyId)+";"
+                ,null);
 
         c.moveToFirst();
         String pname = c.getString(1);

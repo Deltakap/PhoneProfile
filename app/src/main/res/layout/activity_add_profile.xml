@@ -52,7 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Mobile Data (For Jelly Bean or lower)"
+        android:text="Mobile Data (for Kitkat and lower)"
         android:id="@+id/text3"
         android:textColor="#232323"
         android:layout_below="@+id/wifispin"
@@ -148,9 +148,10 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Media Volume"
         android:id="@+id/textView2"
+        android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
         android:textColor="#454545"
-        android:layout_below="@+id/ringVol"
+        android:layout_below="@+id/mediaChk"
         android:layout_alignParentStart="true" />
 
     <SeekBar
@@ -211,7 +212,7 @@
         android:checked="false"
         android:layout_below="@+id/text7"
         android:layout_alignParentStart="true"
-        android:text="Overide Volume"
+        android:text="Overide Ringer Volume"
         android:onClick="onOvrVolClicked" />
 
     <CheckBox
@@ -253,7 +254,8 @@
         android:ems="10"
         android:id="@+id/fromTime"
         android:layout_below="@+id/textView4"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:clickable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -272,6 +274,17 @@
         android:ems="10"
         android:id="@+id/toTime"
         android:layout_below="@+id/textView5"
+        android:layout_alignParentStart="true"
+        android:clickable="true" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/mediaChk"
+        android:checked="false"
+        android:text="Overide Media Volume"
+        android:onClick="onOvrVolClicked"
+        android:layout_below="@+id/ringVol"
         android:layout_alignParentStart="true" />
 
 </RelativeLayout>
