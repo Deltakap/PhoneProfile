@@ -155,8 +155,8 @@ public class AddProfile extends ActionBarActivity implements AdapterView.OnItemS
                 fromTimeT.setEnabled(true);
                 toTimeT.setEnabled(true);
 
-                fromTimeT.setText(fromTime.substring(11));
-                toTimeT.setText(toTime.substring(11));
+                fromTimeT.setText(fromTime);
+                toTimeT.setText(toTime);
             }
         }
     }

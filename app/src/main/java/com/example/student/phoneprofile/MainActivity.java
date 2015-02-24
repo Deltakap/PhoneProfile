@@ -78,7 +78,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         SQLiteDatabase db = helper.getReadableDatabase();
         Cursor c = db.rawQuery("SELECT * FROM profile WHERE datetime('2015-02-24 "+nowtime+"')" +
-                " BETWEEN datetime(fromTime) AND datetime(toTime);",null);
+                " BETWEEN datetime(fromTime) AND datetime(toTime) OR datetime('2015-02-25 " +
+                nowtime+"') BETWEEN datetime(fromTime) AND datetime(toTime);",null);
         c.moveToFirst();
 
         if(c.getCount() == 1 && applyId != c.getInt(0)){
