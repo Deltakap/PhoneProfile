@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
@@ -32,6 +33,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Calendar;
+import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener,
@@ -42,11 +44,24 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     long selectedId;
     ActionMode actionMode;
     long applyId;
+    int userId=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        String android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        StayLoginTask st = new StayLoginTask();
+        try {
+            st.execute(android_id).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        userId = st.getUser_id();
 
         showList();
     }
@@ -128,6 +143,21 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if(userId != 0){
+            menu.clear();
+            menu.add(1,R.id.bcloud,100,"Backup to Cloud");
+            menu.add(1,R.id.rcloud,100,"Restore from Cloud");
+            menu.add(1,R.id.action_logout,100,"Sign Out");
+        }
+        else{
+            menu.clear();
+            menu.add(1,R.id.action_login,100,"Sign In");
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -137,8 +167,20 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_login) {
             Intent i = new Intent(this,Login.class);
-            startActivity(i);
+            startActivityForResult(i, 25);
             return true;
+        }
+
+        if(id == R.id.action_logout){
+            String android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+
+            SignOutTask s = new SignOutTask();
+            s.execute(android_id);
+
+            userId = 0;
+            Toast.makeText(getApplicationContext(),
+                    "Sign out successfully",Toast.LENGTH_SHORT).show();
         }
 
         return super.onOptionsItemSelected(item);
@@ -290,6 +332,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                         t.show();
                     }
                 }
+            }
+        }
+        if(requestCode == 25){
+            if(resultCode == RESULT_OK){
+                Toast.makeText(getApplicationContext(),
+                        "Login Successfully",Toast.LENGTH_SHORT).show();
+                userId = i.getIntExtra("user_id",-1);
             }
         }
     }

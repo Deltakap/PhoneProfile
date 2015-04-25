@@ -9,8 +9,8 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/username"
-        android:hint="Username"
+        android:id="@+id/usernamereg"
+        android:hint="Username (8-20 characters)"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="28dp"
@@ -21,31 +21,33 @@
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/password"
+        android:id="@+id/passwordreg"
         android:layout_marginTop="30dp"
-        android:hint="Password"
-        android:layout_below="@+id/username"
+        android:hint="Password (8-20 characters)"
+        android:layout_below="@+id/usernamereg"
         android:layout_alignParentStart="true"
-        android:layout_alignEnd="@+id/username" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign Up"
-        android:id="@+id/signup"
-        android:layout_below="@+id/editText"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="34dp" />
+        android:layout_alignEnd="@+id/usernamereg" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/confirmpass"
         android:layout_marginTop="35dp"
         android:hint="Confirm Password"
-        android:layout_below="@+id/password"
+        android:layout_below="@+id/passwordreg"
         android:layout_alignParentStart="true"
-        android:layout_alignEnd="@+id/password" />
+        android:layout_alignEnd="@+id/passwordreg" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sign Up"
+        android:id="@+id/signupsen"
+        android:layout_below="@+id/confirmpass"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="34dp"
+        android:onClick="Register"
+        android:nestedScrollingEnabled="false" />
 </RelativeLayout>

@@ -3,4 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/action_login" android:title="Sign In"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/bcloud" android:title="Backup to Cloud"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/rcloud" android:title="Restore from Cloud"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_logout" android:title="Sign Out"
+        android:orderInCategory="100" app:showAsAction="never" />
 </menu>

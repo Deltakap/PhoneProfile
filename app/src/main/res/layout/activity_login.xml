@@ -35,7 +35,8 @@
         android:id="@+id/signin"
         android:layout_marginTop="41dp"
         android:layout_below="@+id/password"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:onClick="buttonClicked" />
 
     <Button
         android:layout_width="wrap_content"
@@ -45,7 +46,8 @@
         android:layout_below="@+id/textView6"
         android:layout_alignStart="@+id/signin"
         android:layout_marginTop="28dp"
-        android:onClick="buttonClicked" />
+        android:onClick="buttonClicked"
+        android:nestedScrollingEnabled="false" />
 
     <TextView
         android:layout_width="wrap_content"
