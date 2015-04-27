@@ -183,6 +183,29 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                     "Sign out successfully",Toast.LENGTH_SHORT).show();
         }
 
+        if(id == R.id.bcloud){
+            BackupCloudTask b = new BackupCloudTask(getApplicationContext());
+            b.execute(Integer.toString(userId));
+        }
+
+        if(id == R.id.rcloud){
+            RestoreCloudTask r = new RestoreCloudTask(getApplicationContext());
+            try {
+                r.execute(Integer.toString(userId)).get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            if(r.getRes()){
+                helper = new ProfileDB(this.getApplicationContext());
+                SQLiteDatabase db = helper.getReadableDatabase();
+                Cursor cursor = db.rawQuery("SELECT _id,pname FROM profile ORDER BY _id;",null);
+                adapter.changeCursor(cursor);
+                db.close();
+            }
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
