@@ -83,7 +83,7 @@ public class SignUp extends ActionBarActivity {
     }
 
     private boolean fieldCheck() {
-        if(username.length() > 20 || username.length() < 8){
+        if(username.length() > 20 || username.length() < 4){
             Toast t = Toast.makeText(SignUp.this.getApplicationContext(),
                     "Username length should be between 8 and 20",Toast.LENGTH_SHORT);
             t.show();

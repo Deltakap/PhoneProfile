@@ -10,10 +10,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
@@ -37,7 +39,7 @@ import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener,
-        AdapterView.OnItemLongClickListener, ActionMode.Callback {
+        AdapterView.OnItemLongClickListener, ActionMode.Callback, Runnable {
 
     ProfileDB helper;
     SimpleCursorAdapter adapter;
@@ -45,6 +47,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     ActionMode actionMode;
     long applyId;
     int userId=0;
+    Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +65,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             e.printStackTrace();
         }
         userId = st.getUser_id();
+        handler = new Handler();
+        handler.postDelayed(this,8000);
 
         showList();
     }
@@ -96,6 +101,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 " BETWEEN datetime(fromTime) AND datetime(toTime) OR datetime('2015-02-25 " +
                 nowtime+"') BETWEEN datetime(fromTime) AND datetime(toTime);",null);
         c.moveToFirst();
+
+        Log.d("user",""+applyId);
 
         if(c.getCount() == 1 && applyId != c.getInt(0)){
 
@@ -294,7 +301,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         Intent i;
 
         switch(id){
-            case R.id.addbt:
+            case R.id.fapadd:
                 i = new Intent(this,AddProfile.class);
                 startActivityForResult(i,10);
                 break;
@@ -462,8 +469,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         view.setSelected(true);
         applyId = id;
-        //Log.d("user","SELECT * FROM profile WHERE _id="+Long.toString(selectedId));
-
         Apply();
     }
 
@@ -508,5 +513,22 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         selectedId = id;
         actionMode = this.startActionMode(this);
         return true;
+    }
+
+    @Override
+    public void run() {
+        applyManager ap = new applyManager(getApplicationContext());
+        try {
+            ap.execute(Long.toString(applyId)).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        if(ap.getAuto() != 0) {
+            applyId = ap.getAuto();
+            Apply();
+        }
+        handler.postDelayed(this,60000);
     }
 }

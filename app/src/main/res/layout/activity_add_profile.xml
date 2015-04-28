@@ -197,13 +197,16 @@
         android:indeterminate="false" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="98dp"
+        android:layout_height="40dp"
         android:text="Save"
+        android:layout_marginTop="10dp"
         android:id="@+id/button"
         android:layout_below="@+id/brightBar"
         android:layout_centerHorizontal="true"
-        android:onClick="SaveClicked" />
+        android:onClick="SaveClicked"
+        android:background="#536DFE"
+        android:textColor="#eeeeee" />
 
     <CheckBox
         android:layout_width="wrap_content"
