@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Calendar;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 
@@ -48,6 +49,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     long applyId;
     int userId=0;
     Handler handler;
+    boolean isChange = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,17 +99,14 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         String nowtime = nowhs+":"+nowms;
 
         SQLiteDatabase db = helper.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT * FROM profile WHERE datetime('2015-02-24 "+nowtime+"')" +
+        final Cursor c = db.rawQuery("SELECT * FROM profile WHERE datetime('2015-02-24 "+nowtime+"')" +
                 " BETWEEN datetime(fromTime) AND datetime(toTime) OR datetime('2015-02-25 " +
                 nowtime+"') BETWEEN datetime(fromTime) AND datetime(toTime);",null);
         c.moveToFirst();
 
-        Log.d("user",""+applyId);
-
-        if(c.getCount() == 1 && applyId != c.getInt(0)){
+        if((c.getCount() == 1 && applyId != c.getInt(0)) || isChange){
 
             String pname = c.getString(1);
-            applyId = c.getInt(0);
 
             final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
             alertDialog.setTitle("Profile Suggestion");
@@ -118,6 +117,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     if (which == DialogInterface.BUTTON_POSITIVE) {
+                        applyId = c.getInt(0);
                         Apply();
                         alertDialog.dismiss();
                     }
@@ -133,6 +133,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                     });
 
             alertDialog.show();
+            isChange = false;
         }
     }
 
@@ -518,17 +519,89 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     @Override
     public void run() {
         applyManager ap = new applyManager(getApplicationContext());
+
+        int wifi;
+        int data;
+        int bt;
+        int soundmode = 0;
+        int ringVol;
+        int mediaVol;
+        int brightness = -2;
+
+        WifiManager wifiManager = (WifiManager)this.getSystemService(Context.WIFI_SERVICE);
+        if(wifiManager.isWifiEnabled())
+            wifi = 1;
+        else
+            wifi = 2;
+
+        boolean mobileDataEnabled = false; // Assume disabled
+        ConnectivityManager cm = (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
         try {
-            ap.execute(Long.toString(applyId)).get();
+            Class cmClass = Class.forName(cm.getClass().getName());
+            Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+            method.setAccessible(true); // Make the method callable
+            mobileDataEnabled = (Boolean)method.invoke(cm);
+        } catch (Exception e) {
+        }
+        if(mobileDataEnabled)
+            data = 1;
+        else
+            data = 2;
+
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(bluetoothAdapter.isEnabled())
+            bt = 1;
+        else
+            bt = 2;
+
+        AudioManager audioManager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+        if(audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
+            soundmode = 1;
+        else if(audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE)
+            soundmode = 2;
+        else if(audioManager.getRingerMode() == AudioManager.RINGER_MODE_SILENT)
+            soundmode = 3;
+
+        ringVol = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+        mediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        int bmode = -2;
+
+        try {
+            bmode = Settings.System.getInt(getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS_MODE);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        if(bmode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
+            brightness = -1;
+        else{
+            try {
+                brightness = Settings.System.getInt(getContentResolver(),
+                        Settings.System.SCREEN_BRIGHTNESS);
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Log.d("user2",""+wifi+data+bt+soundmode+ringVol+mediaVol+brightness);
+
+        try {
+            ap.execute(Long.toString(applyId),Integer.toString(wifi),Integer.toString(data),
+                    Integer.toString(bt),Integer.toString(soundmode),Integer.toString(ringVol),
+                    Integer.toString(mediaVol),Integer.toString(brightness)).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+        isChange = ap.getIsChange();
         if(ap.getAuto() != 0) {
             applyId = ap.getAuto();
             Apply();
         }
-        handler.postDelayed(this,60000);
+        Log.d("user2",""+applyId+" "+ap.getAuto());
+        handler.postDelayed(this, 60000);
     }
 }

@@ -3,8 +3,10 @@ package com.example.student.phoneprofile;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.util.Log;
 
 import java.util.Calendar;
 
@@ -17,6 +19,17 @@ public class applyManager extends AsyncTask<String,Void,Boolean> {
     StringBuilder buffer = new StringBuilder();
     private boolean res;
     private Context context;
+    long applyID;
+
+    int wifi;
+    int data;
+    int bt;
+    int soundmode;
+    int ringVol;
+    int mediaVol;
+    int brightness;
+
+    private boolean isChange = false;
 
     public applyManager(Context context){
         this.context = context;
@@ -25,6 +38,16 @@ public class applyManager extends AsyncTask<String,Void,Boolean> {
 
     @Override
     protected Boolean doInBackground(String... params) {
+        applyID = Long.parseLong(params[0]);
+        wifi = Integer.parseInt(params[1]);
+        data = Integer.parseInt(params[2]);
+        bt = Integer.parseInt(params[3]);
+        soundmode = Integer.parseInt(params[4]);
+        ringVol = Integer.parseInt(params[5]);
+        mediaVol = Integer.parseInt(params[6]);
+        brightness = Integer.parseInt(params[7]);
+
+        systemChk();
         automaticChk();
         return true;
     }
@@ -43,6 +66,10 @@ public class applyManager extends AsyncTask<String,Void,Boolean> {
 
     public long getMan(){
         return manPro;
+    }
+
+    public boolean getIsChange(){
+        return isChange;
     }
 
     private void automaticChk(){
@@ -68,5 +95,39 @@ public class applyManager extends AsyncTask<String,Void,Boolean> {
 
     private void systemChk(){
         SQLiteDatabase db = helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM profile WHERE _id = "+applyID,null);
+        c.moveToFirst();
+        if(c.getCount() == 1) {
+            if (c.getInt(2) != 0 && c.getInt(2) != wifi) {
+                Log.d("user","wifi");
+                isChange = true;
+                return;
+            } else if (c.getInt(3) != 0 && c.getInt(3) != data) {
+                Log.d("user","data");
+                isChange = true;
+                return;
+            } else if (c.getInt(4) != 0 && c.getInt(4) != bt) {
+                Log.d("user","bt");
+                isChange = true;
+                return;
+            } else if (c.getInt(5) != 0 && c.getInt(5) != soundmode) {
+                Log.d("user","soundmode");
+                isChange = true;
+                return;
+            } else if (c.getInt(6) != 0 && c.getInt(6) != ringVol) {
+                Log.d("user","ringVol");
+                isChange = true;
+                return;
+            } else if (c.getInt(7) != 0 && c.getInt(7) != mediaVol) {
+                Log.d("user","mediaVol");
+                isChange = true;
+                return;
+            } else if (c.getInt(8) != 0 && c.getInt(8) != brightness) {
+                Log.d("user","brightness");
+                isChange = true;
+                return;
+            } else
+                isChange = false;
+        }
     }
 }
