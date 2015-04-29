@@ -47,8 +47,8 @@ public class applyManager extends AsyncTask<String,Void,Boolean> {
         mediaVol = Integer.parseInt(params[6]);
         brightness = Integer.parseInt(params[7]);
 
-        systemChk();
         automaticChk();
+        systemChk();
         return true;
     }
 
@@ -114,15 +114,15 @@ public class applyManager extends AsyncTask<String,Void,Boolean> {
                 Log.d("user","soundmode");
                 isChange = true;
                 return;
-            } else if (c.getInt(6) != 0 && c.getInt(6) != ringVol) {
+            } else if (c.getInt(6) != -1 && c.getInt(6) != ringVol) {
                 Log.d("user","ringVol");
                 isChange = true;
                 return;
-            } else if (c.getInt(7) != 0 && c.getInt(7) != mediaVol) {
+            } else if (c.getInt(7) != -1 && c.getInt(7) != mediaVol) {
                 Log.d("user","mediaVol");
                 isChange = true;
                 return;
-            } else if (c.getInt(8) != 0 && c.getInt(8) != brightness) {
+            } else if (c.getInt(8) != -2 && c.getInt(8) != brightness) {
                 Log.d("user","brightness");
                 isChange = true;
                 return;

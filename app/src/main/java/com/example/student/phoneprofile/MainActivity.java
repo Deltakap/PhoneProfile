@@ -104,7 +104,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 nowtime+"') BETWEEN datetime(fromTime) AND datetime(toTime);",null);
         c.moveToFirst();
 
-        if((c.getCount() == 1 && applyId != c.getInt(0)) || isChange){
+        if(c.getCount() == 1 && (applyId != c.getInt(0) || isChange)){
 
             String pname = c.getString(1);
 
@@ -138,6 +138,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     protected void onResume(){
+        handler.removeCallbacks(this);
+        this.run();
         super.onResume();
         showList();
         applyCheck();
@@ -585,7 +587,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         }
 
-        Log.d("user2",""+wifi+data+bt+soundmode+ringVol+mediaVol+brightness);
+        //Log.d("user2",""+wifi+data+bt+soundmode+ringVol+mediaVol+brightness);
 
         try {
             ap.execute(Long.toString(applyId),Integer.toString(wifi),Integer.toString(data),
@@ -598,10 +600,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         }
         isChange = ap.getIsChange();
         if(ap.getAuto() != 0) {
-            applyId = ap.getAuto();
-            Apply();
+            if(applyId != ap.getAuto()) {
+                applyId = ap.getAuto();
+                Apply();
+                Log.d("user3", "Automatically change profile");
+            }
         }
-        Log.d("user2",""+applyId+" "+ap.getAuto());
-        handler.postDelayed(this, 60000);
+        //Log.d("user2",""+applyId+" "+ap.getAuto());
+        handler.postDelayed(this, 30000);
     }
 }
